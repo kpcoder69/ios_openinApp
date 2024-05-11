@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+</head>
+<body>
+    <div id="greeting"></div>
+    <canvas id="chart" width="400" height="400"></canvas>
+    <div id="linkTabs">
+        <button id="topLinksBtn">Top Links</button>
+        <button id="recentLinksBtn">Recent Links</button>
+    </div>
+    <div id="linkList"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        // Fetch data from API
+        fetch('https://api.inopenapp.com/api/v1/dashboardNew', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjU5MjcsImlhdCI6MTY3NDU1MDQ1MH0.dCkW0ox8tbjJA2GgUx2UEwNlbTZ7Rr38PVFJevYcXFI'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Extract data
+            const greeting = getGreeting();
+            const chartData = data.chartData;
+            const topLinks = data.topLinks;
+            const recentLinks = data.recentLinks;
+            
+            // Populate UI components
+            document.getElementById('greeting').innerText = greeting;
+            createChart(chartData);
+            document.getElementById('topLinksBtn').addEventListener('click', () => populateLinks(topLinks));
+            document.getElementById('recentLinksBtn').addEventListener('click', () => populateLinks(recentLinks));
+        })
+        .catch(error => console.error('Error fetching data:', error));
+
+        function getGreeting() {
+            const currentTime = new Date().getHours();
+            if (currentTime < 12) return "Good morning!";
+            else if (currentTime < 18) return "Good afternoon!";
+            else return "Good evening!";
+        }
+
+        function createChart(data) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Chart Data',
+                        data: data.values,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateLinks(links) {
+            const linkList = document.getElementById('linkList');
+            linkList.innerHTML = ''; // Clear previous data
+            links.forEach(link => {
+                const listItem = document.createElement('div');
+                listItem.textContent = link;
+                linkList.appendChild(listItem);
+            });
+        }
+    </script>
+</body>
+</html>
